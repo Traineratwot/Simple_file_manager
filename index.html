@@ -1,0 +1,236 @@
+<!-- <link rel="stylesheet" href="SSS.css" /> -->
+<script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+<style>
+	.icon {
+		font-size: xx-large;
+	}
+
+	li {
+		margin-bottom: 5px;
+		list-style-type: none;
+		/* Убираем маркеры */
+	}
+
+	ul {
+		margin-left: 0;
+		/* Отступ слева в браузере IE и Opera */
+		padding-left: 0;
+		/* Отступ слева в браузере Firefox, Safari, Chrome */
+	}
+
+	#bin {
+		min-width: 50px;
+		min-height: 20px;
+		position: fixed;
+		top: 2%;
+		right: 2%;
+		background-color: azure;
+		transition-duration: 1s;
+		box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.75);
+	}
+
+	.load img {
+		width: 60px;
+		height: 60px;
+	}
+
+	.size {
+		color: rgb(133, 131, 131);
+		font-size: 8pt;
+	}
+
+	.poiner {
+		cursor: pointer;
+	}
+</style>
+<form class="filter">
+	<table>
+		<tr>
+			<td>искать везде</td>
+			<td>изменно от</td>
+			<td>изменнено до</td>
+			<td>поик по имени</td>
+			<td>фильтр по типу</td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			</td>
+		<tr>
+			<td><input type="checkbox" name="onfolder" id="" /></td>
+			<td><input type="date" name="from" id="" /></td>
+			<td><input type="date" name="to" id="" /></td>
+			<td><input type="search" name="search" id="" /></td>
+			<td><select name="type" id="">
+					<option value="" selected>любой</option>
+					<option value="image">image</option>
+					<option value="xls">xls</option>
+					<option value="doc">doc</option>
+					<option value="css">css</option>
+					<option value="html">html</option>
+					<option value="php">php</option>
+					<option value="js">js</option>
+			<td></select></td>
+			<td><input type="button" onclick="getFiles()" value="найти" /></td>
+			<td><input type="button" onclick="downloads()" value="скачать выделенные" /></td>
+			<td>
+				<span class="load" id="down-load">
+					<img src="/assets/Blocks-1s-200px.png" alt="" srcset="" />
+				</span></td>
+			</td>
+		</tr>
+	</table>
+</form>
+
+<div id="result">
+	<span class="load" id="dir-Load">
+		<img src="/assets/Blocks-1s-200px.png" alt="" srcset="" />
+	</span>
+	<ul></ul>
+</div>
+<div id="bin">
+	<span><i class="fas fa-luggage-cart"></i></span>
+	<ul></ul>
+	<span class="sz"></span>
+	<input type="button" onclick="clear()" value="очистиь" />
+</div>
+<script>
+	var mss = [];
+	var files = {};
+	function getFiles(x) {
+		if (x) {
+			var data = { dir: x.join("\\") };
+		} else {
+			var data = $("form.filter").serialize();
+		}
+		$("#dir-Load img").attr("src", "/assets/Blocks-1s-200px.gif");
+		$.ajax({
+			type: "POST",
+			url: "/file.php",
+			data: data,
+			dataType: "json",
+			success: function (response) {
+				keys = Object.keys(response);
+				keys.sort();
+				// console.log(response);
+				if (response) {
+					$("#result ul").html("");
+					for (let i = 0; i < keys.length; i++) {
+						const e = response[keys[i]];
+						files[e.path] = e;
+						ischec = "";
+						for (let k = 0; k < mss.length; k++) {
+							const ee = mss[k];
+							if (ee == e.path) {
+								ischec = "checked";
+							}
+						}
+						path = e.path.split(`\\`);
+						path = JSON.stringify(path);
+						var size = "";
+						if (e.prop) {
+							size = format_byte(e.prop.size);
+						}
+						var dir = "";
+						if (keys[i].indexOf("file") == -1) {
+							dir = `class="poiner" onclick='getFiles(${path})'`;
+						} else {
+							dir = `class="poiner" onclick="$('#item${i}').trigger('click');" oncontextmenu="download('${e.path}')"`;
+						}
+						$("#result ul").append(`
+						<li><input id="item${i}" type="checkbox" ${ischec} onchange="checin(this)" value="${e.path}">
+							<span ${dir}>
+							<span class="icon">${e.icon}</span>
+							<span>${e.name}</span></span></a>${size}
+							</span>
+						</li>
+						`);
+					}
+				}
+				$("#dir-Load img").attr("src", "/assets/Blocks-1s-200px.png");
+			},
+			error: function (response) {
+				$("#dir-Load img").attr("src", "/assets/Blocks-1s-200px.png");
+				console.error(response);
+			}
+		});
+	}
+	function downloads() {
+		if (mss.length > 0) {
+			$("#down-Load img").attr("src", "/assets/Blocks-1s-200px.gif");
+
+			data = { dirs: mss.sort() };
+
+			$.ajax({
+				type: "POST",
+				url: "/dowenloader.php",
+				data: data,
+				dataType: "json",
+				success: function (response) {
+					download(response.name);
+					$("#down-Load img").attr("src", "/assets/Blocks-1s-200px.png");
+				},
+				error: function (response) {
+					$("#down-Load img").attr("src", "/assets/Blocks-1s-200px.png");
+					console.error(response);
+				}
+			});
+		}
+	}
+	function checin(x) {
+		if (x.checked) {
+			// if changed state is "CHECKED"
+			mss.push(x.value);
+		} else {
+			if (mss != []) {
+				var index = mss.indexOf(x.value);
+				if (index !== -1) mss.splice(index, 1);
+			}
+		}
+		if (mss != []) {
+			$("#bin ul").html("");
+			var total = 0;
+			for (let k = 0; k < mss.length; k++) {
+				const ee = mss[k];
+				var size = "";
+				if (files[ee].prop) {
+					total += files[ee].prop.size;
+					size = format_byte(files[ee].prop.size);
+				}
+				$("#bin ul").append(`<li>${ee} ${size}</li>`);
+			}
+			$("#bin .sz").html(format_byte(total));
+		} else {
+			$("#bin ul").html("");
+		}
+	}
+	getFiles();
+	function format_byte(s = 0) {
+		let size = `<span class="size"> ${Math.round(s)} B</span>`;
+		if (s > 1024) {
+			s /= 1024;
+			size = `<span class="size"> ${Math.round(s)} Kb</span>`;
+		}
+		if (s > 1024) {
+			s /= 1024;
+			size = `<span class="size"> ${Math.round(s)} Mb</span>`;
+		}
+		if (s > 1024) {
+			s /= 1024;
+			size = `<span class="size"> ${Math.round(s)} Gb</span>`;
+		}
+		return size;
+	}
+	function clear() {
+		mss = [];
+		$("input[type=checkbox]:checked").prop("checked", false);
+		checin(false);
+	}
+	function download(x) {
+		var link = document.createElement("a");
+		link.setAttribute("href", x);
+		link.setAttribute("download", "download");
+		onload = link.click();
+		return false;
+	}
+</script>
