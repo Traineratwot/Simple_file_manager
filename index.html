@@ -75,7 +75,7 @@
 			<td><input type="button" onclick="downloads()" value="скачать выделенные" /></td>
 			<td>
 				<span class="load" id="down-load">
-					<img src="/assets/Blocks-1s-200px.png" alt="" srcset="" />
+					<img src="assets/Blocks-1s-200px.png" alt="" srcset="" />
 				</span></td>
 			</td>
 		</tr>
@@ -84,7 +84,7 @@
 
 <div id="result">
 	<span class="load" id="dir-Load">
-		<img src="/assets/Blocks-1s-200px.png" alt="" srcset="" />
+		<img src="assets/Blocks-1s-200px.png" alt="" srcset="" />
 	</span>
 	<ul></ul>
 </div>
@@ -106,7 +106,7 @@
 		$("#dir-Load img").attr("src", "/assets/Blocks-1s-200px.gif");
 		$.ajax({
 			type: "POST",
-			url: "/file.php",
+			url: "file.php",
 			data: data,
 			dataType: "json",
 			success: function (response) {
@@ -163,7 +163,7 @@
 
 			$.ajax({
 				type: "POST",
-				url: "/dowenloader.php",
+				url: "dowenloader.php",
 				data: data,
 				dataType: "json",
 				success: function (response) {
