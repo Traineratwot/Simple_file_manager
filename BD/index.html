@@ -1,0 +1,275 @@
+<!-- <link rel="stylesheet" href="SSS.css" /> -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+<style>
+	.icon {
+		font-size: xx-large;
+	}
+
+	li {
+		margin-bottom: 5px;
+		list-style-type: none;
+		/* Убираем маркеры */
+	}
+
+	ul {
+		margin-left: 0;
+		/* Отступ слева в браузере IE и Opera */
+		padding-left: 0;
+		/* Отступ слева в браузере Firefox, Safari, Chrome */
+	}
+
+	#bin {
+		min-width: 50px;
+		min-height: 20px;
+		position: fixed;
+		top: 2%;
+		right: 2%;
+		background-color: azure;
+		transition-duration: 1s;
+		box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.75);
+	}
+
+	.load img {
+		width: 60px;
+		height: 60px;
+	}
+
+	.size {
+		color: rgb(133, 131, 131);
+		font-size: 8pt;
+	}
+
+	.poiner {
+		cursor: pointer;
+	}
+</style>
+<form class="filter">
+	<table>
+		<tr>
+			<td>изменно от</td>
+			<td>изменнено до</td>
+			<td>поик по имени</td>
+			<td>фильтр по типу</td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</td>
+		<tr>
+			<td><input type="date" name="from" id="" /></td>
+			<td><input type="date" name="to" id="" /></td>
+			<td><input type="search" onkeyup="render({name:this.value})" name="search"
+					id="" /></td>
+			<td><select name="type" id="">
+					<option value="" selected>любой</option>
+					<option value="image">image</option>
+					<option value="xls">xls</option>
+					<option value="doc">doc</option>
+					<option value="css">css</option>
+					<option value="html">html</option>
+					<option value="php">php</option>
+					<option value="js">js</option>
+				</select></td>
+			<td><input type="button" onclick="getFiles()" value="найти" /></td>
+			<td><input type="button" onclick="downloads()" value="скачать
+					выделенные" /></td>
+			<td>
+				<span class="load" id="down-load">
+					<img src="/assets/Blocks-1s-200px.png" alt="" srcset="" />
+				</span></td>
+		</tr>
+		<tr>
+			<td colspan="3"><span id="prev_page"
+					onclick="getFiles(this_catalog,prev_page)">
+					<<<<</span> </td> <td colspan="3"><span id="this_page"></span>/<span
+					id="all_page"></span></td>
+			<td colspan="2"><span id="next_page"
+					onclick="getFiles(this_catalog,next_page)">>>>></span></td>
+		</tr>
+	</table>
+</form>
+
+<div id="result">
+	<span class="load" id="dir-Load">
+		<img src="/assets/Blocks-1s-200px.png" alt="" srcset="" />
+	</span>
+	<ul></ul>
+</div>
+<div id="bin">
+	<span><i class="fas fa-luggage-cart"></i></span>
+	<ul></ul>
+	<span class="sz"></span>
+	<input type="button" onclick="clear()" value="очистиь" />
+</div>
+<script>
+	var mss = [];
+	var files = {};
+	var this_catalog = '';
+	var next_page = 0
+	var prev_page = 0
+	var Aresponse = {};
+	function getFiles(x, page = 0) {
+		if (x) {
+			if (x!=8) {
+				this_catalog = x
+				var data = { dir: x.join("\\"), page: page };
+			}
+		} else {
+			var data = $("form.filter").serializeArray();
+			data.push({ name: 'page', value: page });
+			data.push({ name: 'onfolder', value: 1 });
+		}
+		$("#dir-Load img").attr("src", "/assets/Blocks-1s-200px.gif");
+		$('#this_page').html('');
+		$('#all_page').html('');
+		$.ajax({
+			type: "POST",
+			url: "/file.php",
+			data: data,
+			dataType: "json",
+			success: function (response) {
+				Aresponse = response
+				render()
+				$("#dir-Load img").attr("src", "/assets/Blocks-1s-200px.png");
+			},
+			error: function (response) {
+				$("#dir-Load img").attr("src", "/assets/Blocks-1s-200px.png");
+				console.error(response);
+			}
+		});
+	}
+	function downloads() {
+		if (mss.length > 0) {
+			$("#down-Load img").attr("src", "/assets/Blocks-1s-200px.gif");
+
+			data = { dirs: mss.sort() };
+
+			$.ajax({
+				type: "POST",
+				url: "/dowenloader.php",
+				data: data,
+				dataType: "json",
+				success: function (response) {
+					download(response.name);
+					$("#down-Load img").attr("src", "/assets/Blocks-1s-200px.png");
+				},
+				error: function (response) {
+					$("#down-Load img").attr("src", "/assets/Blocks-1s-200px.png");
+					console.error(response);
+				}
+			});
+		}
+	}
+	function checin(x) {
+		if (x.checked) {
+			// if changed state is "CHECKED"
+			mss.push(x.value);
+		} else {
+			if (mss != []) {
+				var index = mss.indexOf(x.value);
+				if (index !== -1) mss.splice(index, 1);
+			}
+		}
+		if (mss != []) {
+			$("#bin ul").html("");
+			var total = 0;
+			for (let k = 0; k < mss.length; k++) {
+				const ee = mss[k];
+				var size = "";
+				if (files[ee].prop) {
+					total += files[ee].prop.size;
+					size = format_byte(files[ee].prop.size);
+				}
+				$("#bin ul").append(`<li>${ee} ${size}</li>`);
+			}
+			$("#bin .sz").html(format_byte(total));
+		} else {
+			$("#bin ul").html("");
+		}
+	}
+	getFiles(8);
+	function format_byte(s = 0) {
+		let size = `<span class="size"> ${Math.round(s)} B</span>`;
+		if (s > 1024) {
+			s /= 1024;
+			size = `<span class="size"> ${Math.round(s)} Kb</span>`;
+		}
+		if (s > 1024) {
+			s /= 1024;
+			size = `<span class="size"> ${Math.round(s)} Mb</span>`;
+		}
+		if (s > 1024) {
+			s /= 1024;
+			size = `<span class="size"> ${Math.round(s)} Gb</span>`;
+		}
+		return size;
+	}
+	function clear() {
+		mss = [];
+		$("input[type=checkbox]:checked").prop("checked", false);
+		checin(false);
+	}
+	function download(x) {
+		var link = document.createElement("a");
+		link.setAttribute("href", x);
+		link.setAttribute("download", "download");
+		onload = link.click();
+		return false;
+	}
+	function render(filter = { name }) {
+		response = Aresponse
+		keys = Object.keys(response);
+		keys.sort();
+		console.log(response);
+		if (response) {
+
+			$("#result ul").html("");
+			for (let i = 0; i < keys.length; i++) {
+				const e = response[keys[i]];
+				if (keys[i] == 'pager') {
+					$('#this_page').html(e.page)
+					$('#all_page').html(e.pages)
+					next_page = e.page + 1;
+					prev_page = e.page - 1;
+					continue;
+				}
+				if (filter.name) {
+					var regexp = new RegExp('(.{0,})(' + filter.name + ')(.{0,})', 'i');
+					if (e.name.search(regexp) === -1) {
+						continue;
+					}
+				}
+				files[e.path] = e;
+				ischec = "";
+				for (let k = 0; k < mss.length; k++) {
+					const ee = mss[k];
+					if (ee == e.path) {
+						ischec = "checked";
+					}
+				}
+				path = e.path.split(`\\`);
+				path = JSON.stringify(path);
+				var size = "";
+				if (e.prop) {
+					size = format_byte(e.prop.size);
+				}
+				var dir = "";
+				if (keys[i].indexOf("file") == -1) {
+					dir = `class="poiner" onclick='getFiles(${path})'`;
+				} else {
+					dir = `class="poiner" onclick="$('#item${i}').trigger('click');" oncontextmenu="download('${e.path}')"`;
+				}
+				$("#result ul").append(`
+						<li><input id="item${i}" type="checkbox" ${ischec} onchange="checin(this)" value="${e.path}">
+							<span ${dir}>
+							<span class="icon">${e.icon}</span>
+							<span>${e.name}</span></span></a>${size}
+							</span>
+						</li>
+						`);
+			}
+		}
+	}
+
+</script>
