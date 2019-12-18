@@ -79,7 +79,7 @@
 	button[disabled]{
 	    color:lightgrey;
 	}
-	*['onclick']{
+	*[onclick]{
 	    cursor: pointer;
 	}
 	#result ul{
@@ -119,7 +119,7 @@
 			<td><button id="download" onclick="downloads()"><i class="fas fa-download"></i> скачать выделенные</button></td>
 			<td>
 				<span class="load" id="down-load">
-					<img src="/assets/Blocks-1s-200px.png" alt="" srcset="" />
+					<img src="assets/Blocks-1s-200px.png" alt="" srcset="" />
 				</span></td>
 		</tr>
 		<tr>
@@ -131,6 +131,22 @@
 		<input type="hidden" name="folder" id="setfolder" />
 	</table>
 </form>
+<<<<<<< HEAD
+=======
+
+<div id="result">
+	<span class="load" id="dir-Load">
+		<img src="assets/Blocks-1s-200px.png" alt="" srcset="" />
+	</span>
+	<ul></ul>
+</div>
+<div id="bin">
+	<span><i class="fas fa-luggage-cart"></i></span>
+	<ul></ul>
+	<span class="sz"></span>
+	<input type="button" onclick="clear()" value="очистиь" />
+</div>
+>>>>>>> d43d0db1c6ca2007b9c88bb6cf38ba9383f68d36
 <script>
 
 	var mss = [];
