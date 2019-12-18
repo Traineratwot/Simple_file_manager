@@ -1,5 +1,3 @@
-<!-- <link rel="stylesheet" href="SSS.css" /> -->
-<script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
 <style>
 	.icon {
 		font-size: xx-large;
@@ -19,15 +17,20 @@
 	}
 
 	#bin {
-		min-width: 50px;
-		min-height: 20px;
-		position: fixed;
-		top: 2%;
-		right: 2%;
-		background-color: azure;
-		transition-duration: 1s;
-		box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.75);
+	overflow: auto;
+	max-height: 50vh;
+	min-width: 50px;
+	min-height: 20px;
+	max-width: 20%;
+	position: fixed;
+	top: 2%;
+	right: 2%;
+	background-color: azure;
+	transition-duration: 0.1s;
+	box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.75);
+	z-index: 999;
 	}
+	#bin::-webkit-scrollbar { width: 2px; }
 
 	.load img {
 		width: 60px;
@@ -42,111 +45,158 @@
 	.poiner {
 		cursor: pointer;
 	}
+	.name{
+        max-width:80% ;
+        overflow:auto;
+	}
+	.name::-webkit-scrollbar { width: 0; }
+	form table td{
+	    width:calc(50vw / 8);
+	}
+	form table td input, form table td button, form table td select{
+	    width:calc(50vw / 8);
+	    height:40px;
+	}
+	#prev{
+	    top:20px;
+	    left:20px;
+	    position: fixed;
+	    display:none; 
+	    background-color: gray;
+	    min-width: 360px; 
+	    min-height:280px;
+	    max-width: 25vw; 
+	    max-height:50vh;
+	    border-radius: 20px 20px 20px 20px;
+	    z-index:1000;
+	    /* pointer-events: none; */
+	}
+	#prev:first-child *{
+	    width:100%;
+	    height:100%;
+	}
+	#prev .content::-webkit-scrollbar { width: 0; }
+	button[disabled]{
+	    color:lightgrey;
+	}
+	*['onclick']{
+	    cursor: pointer;
+	}
+	#result ul{
+	    min-height: 100vh;
+	}
 </style>
-<form class="filter">
+<div id="prev"></div>
+<div id="bin">
+	<span><i class="fas fa-luggage-cart"></i></span>
+	<ul></ul>
+	<span id="sz"></span>
+	<button id="clear_but" onclick="clear()" ><i class="fas fa-trash-alt"></i>очистить</button><button type="button" onclick="downloads()"><i class="fas fa-download"></i> скачать</button>
+</div>
+
+<form class="filter" onsubmit="return false">
 	<table>
 		<tr>
-			<td>искать везде</td>
-			<td>изменно от</td>
-			<td>изменнено до</td>
-			<td>поик по имени</td>
-			<td>фильтр по типу</td>
-			<td></td>
-			<td></td>
-			<td></td>
-			<td></td>
-			</td>
+			<th>изменно от</th>
+			<th>изменнено до</th>
+			<th>поик по имени</th>
+			<th>фильтр по типу</th>
+			<th></th>
+			<th></th>
+			<th></th>
+			<th></th>
+		</td>
 		<tr>
-			<td><input type="checkbox" name="onfolder" id="" /></td>
 			<td><input type="date" name="from" id="" /></td>
 			<td><input type="date" name="to" id="" /></td>
-			<td><input type="search" name="search" id="" /></td>
+			<td><input type="search" onkeyup="render({name:this.value})" name="search"
+					id="" /></td>
 			<td><select name="type" id="">
-					<option value="" selected>любой</option>
-					<option value="image">image</option>
-					<option value="xls">xls</option>
-					<option value="doc">doc</option>
-					<option value="css">css</option>
-					<option value="html">html</option>
-					<option value="php">php</option>
-					<option value="js">js</option>
-			<td></select></td>
-			<td><input type="button" onclick="getFiles()" value="найти" /></td>
-			<td><input type="button" onclick="downloads()" value="скачать выделенные" /></td>
+                [[changesV2_settings?&html=true]]
+				</select></td>
+			<td><button id="search" onclick="$('#setfolder').val(null);getFiles()" ><i class="fas fa-search"></i>найти</button></td>
+			<td><button id="location" disabled onclick="getFiles();mss = []" ><i class="fas fa-search-location"></i></i>найти в папке </button></td>
+			<td><button id="download" onclick="downloads()"><i class="fas fa-download"></i> скачать выделенные</button></td>
 			<td>
 				<span class="load" id="down-load">
 					<img src="/assets/Blocks-1s-200px.png" alt="" srcset="" />
 				</span></td>
-			</td>
 		</tr>
+		<tr>
+		    <td><button style="width:20px;height:20px;" onclick="refresh()"><i class="fas fa-redo-alt"></i></button></td>
+			<td colspan="2"><span class="poiner" id="prev_page"onclick="if(Aresponse.pager){getFiles(this_catalog,prev_page)}"><<<<</span></td>
+			<td colspan="2"><span id="this_page"></span>/<span id="all_page"></span> </td>
+			<td colspan="2"><span class="poiner" id="next_page"onclick="if(Aresponse.pager){getFiles(this_catalog,next_page)}">>>>></span></td>
+		</tr>
+		<input type="hidden" name="folder" id="setfolder" />
 	</table>
 </form>
-
-<div id="result">
-	<span class="load" id="dir-Load">
-		<img src="/assets/Blocks-1s-200px.png" alt="" srcset="" />
-	</span>
-	<ul></ul>
-</div>
-<div id="bin">
-	<span><i class="fas fa-luggage-cart"></i></span>
-	<ul></ul>
-	<span class="sz"></span>
-	<input type="button" onclick="clear()" value="очистиь" />
-</div>
 <script>
+
 	var mss = [];
 	var files = {};
-	function getFiles(x) {
-		if (x) {
-			var data = { dir: x.join("\\") };
-		} else {
-			var data = $("form.filter").serialize();
+	
+	var this_catalog = '';
+	if (location.hash != "") {
+		x = decodeURI(location.hash.trim().substr(1));
+		this_catalog = x
+	}
+	var next_page = 0
+	var prev_page = 0
+	var Aresponse = {};
+	if (localStorage.cache) {
+		var cache = JSON.parse(localStorage.cache)
+	} else {
+		var cache = {}
+	}
+	var total_size = 0;
+	function getFiles(x, page = 0) {
+		if (page < 0) {
+			page = Number($("#all_page").text());
+			if (!page) {
+				page = 0;
+			}
 		}
+		if (x) {
+			if (x != 8) {
+				this_catalog = x;
+				var data = { dir: x.join("\\"), page: page };
+				location.hash = x.join("\\");
+			}
+			if (x == 8) {
+				if (location.hash != "") {
+					x = decodeURI(location.hash.trim().substr(1));
+					var data = { dir: x, page: page };
+				}
+			}
+			if (
+				cache[x + "pg" + page] &&
+				Object.keys(cache[x + "pg" + page]).length > 1
+			) {
+				Aresponse = cache[x + "pg" + page];
+				render();
+				return true;
+			}
+		} else {
+			this_catalog = false;
+			var data = $("form.filter").serializeArray();
+			data.push({ name: "page", value: page });
+			data.push({ name: "onfolder", value: 1 });
+		}
+	
 		$("#dir-Load img").attr("src", "/assets/Blocks-1s-200px.gif");
+		$('#this_page').html('');
+		$('#all_page').html('');
 		$.ajax({
 			type: "POST",
-			url: "/file.php",
+			url: "/assets/changes/changes_files",
 			data: data,
 			dataType: "json",
 			success: function (response) {
-				keys = Object.keys(response);
-				keys.sort();
-				// console.log(response);
-				if (response) {
-					$("#result ul").html("");
-					for (let i = 0; i < keys.length; i++) {
-						const e = response[keys[i]];
-						files[e.path] = e;
-						ischec = "";
-						for (let k = 0; k < mss.length; k++) {
-							const ee = mss[k];
-							if (ee == e.path) {
-								ischec = "checked";
-							}
-						}
-						path = e.path.split(`\\`);
-						path = JSON.stringify(path);
-						var size = "";
-						if (e.prop) {
-							size = format_byte(e.prop.size);
-						}
-						var dir = "";
-						if (keys[i].indexOf("file") == -1) {
-							dir = `class="poiner" onclick='getFiles(${path})'`;
-						} else {
-							dir = `class="poiner" onclick="$('#item${i}').trigger('click');" oncontextmenu="download('${e.path}')"`;
-						}
-						$("#result ul").append(`
-						<li><input id="item${i}" type="checkbox" ${ischec} onchange="checin(this)" value="${e.path}">
-							<span ${dir}>
-							<span class="icon">${e.icon}</span>
-							<span>${e.name}</span></span></a>${size}
-							</span>
-						</li>
-						`);
-					}
-				}
+				Aresponse = response
+				cache[x + 'pg' + page] = response;
+				localStorage.cache = JSON.stringify(cache)
+				render()
 				$("#dir-Load img").attr("src", "/assets/Blocks-1s-200px.png");
 			},
 			error: function (response) {
@@ -156,18 +206,30 @@
 		});
 	}
 	function downloads() {
+		if (total_size > 1073741824 && total_size < 3221225472) {
+			if (!confirm('Вы пытаетель скачать файл больше 1 Gb. Вы уверенны?')) {
+				return false
+			}
+		}
+		if (total_size > 3221225472) {
+			alert('Вы пытаетель скачать файл больше 3 Gb. Это слишком много')
+			return false
+		}
 		if (mss.length > 0) {
-			$("#down-Load img").attr("src", "/assets/Blocks-1s-200px.gif");
-
+			$("#down-load img").attr("src", "/assets/Blocks-1s-200px.gif");
 			data = { dirs: mss.sort() };
-
 			$.ajax({
 				type: "POST",
-				url: "/dowenloader.php",
+				url: "assets/changes/dowenloader",
 				data: data,
 				dataType: "json",
 				success: function (response) {
 					download(response.name);
+					if (response.log.faild) {
+						console.warn(response);
+					} else {
+						console.log(response);
+					}
 					$("#down-Load img").attr("src", "/assets/Blocks-1s-200px.png");
 				},
 				error: function (response) {
@@ -178,59 +240,255 @@
 		}
 	}
 	function checin(x) {
-		if (x.checked) {
-			// if changed state is "CHECKED"
-			mss.push(x.value);
+		if (x === 99) {
+			$('input.item_add').each(function (index, element) {
+				if (this.checked) {
+					$(this).prop('checked', false)
+					if (mss != []) {
+						var index = mss.indexOf(this.value);
+						if (index !== -1) mss.splice(index, 1);
+					}
+	
+				} else {
+					$(this).prop('checked', true)
+					mss.push(this.value);
+				}
+			});
 		} else {
-			if (mss != []) {
-				var index = mss.indexOf(x.value);
-				if (index !== -1) mss.splice(index, 1);
+			if (x.checked) {
+				// if changed state is "CHECKED"
+				mss.push(x.value);
+			} else {
+				if (mss != []) {
+					var index = mss.indexOf(x.value);
+					if (index !== -1) mss.splice(index, 1);
+				}
 			}
 		}
 		if (mss != []) {
 			$("#bin ul").html("");
-			var total = 0;
+			total_size = 0;
 			for (let k = 0; k < mss.length; k++) {
 				const ee = mss[k];
 				var size = "";
 				if (files[ee].prop) {
-					total += files[ee].prop.size;
+					total_size += parseInt(files[ee].prop.size);
 					size = format_byte(files[ee].prop.size);
 				}
 				$("#bin ul").append(`<li>${ee} ${size}</li>`);
 			}
-			$("#bin .sz").html(format_byte(total));
+			$("#sz").html(format_byte(total_size));
 		} else {
 			$("#bin ul").html("");
 		}
+		setfolder();
 	}
-	getFiles();
+	getFiles(8);
 	function format_byte(s = 0) {
-		let size = `<span class="size"> ${Math.round(s)} B</span>`;
+		s = parseInt(s)
+		let size = `<span class="size"> ${s.toFixed(0)} B</span>`;
 		if (s > 1024) {
 			s /= 1024;
-			size = `<span class="size"> ${Math.round(s)} Kb</span>`;
+			size = `<span class="size"> ${s.toFixed(1)} Kb</span>`;
 		}
 		if (s > 1024) {
 			s /= 1024;
-			size = `<span class="size"> ${Math.round(s)} Mb</span>`;
+			size = `<span class="size"> ${s.toFixed(2)} Mb</span>`;
 		}
 		if (s > 1024) {
 			s /= 1024;
-			size = `<span class="size"> ${Math.round(s)} Gb</span>`;
+			size = `<span class="size"> ${s.toFixed(3)} Gb</span>`;
 		}
 		return size;
 	}
 	function clear() {
 		mss = [];
+		files = {};
 		$("input[type=checkbox]:checked").prop("checked", false);
 		checin(false);
+		return true;
 	}
 	function download(x) {
 		var link = document.createElement("a");
-		link.setAttribute("href", x);
-		link.setAttribute("download", "download");
+		var path = x.replace('/var/www/www-root/data/ftp', '');
+		var name = x.split('/').pop()
+		link.setAttribute("href", path);
+		link.setAttribute("download", name);
 		onload = link.click();
 		return false;
 	}
-</script>
+	async function render(filter = { name }) {
+		response = Aresponse
+		keys = Object.keys(response);
+		keys.sort();
+		console.log(response);
+		if (response) {
+			$("#result ul").html("");
+			for (let i = 0; i < keys.length; i++) {
+				const e = response[keys[i]];
+				if (keys[i] == 'pager') {
+					$('#this_page').text(e.page)
+					$('#all_page').text(Math.ceil(e.pages))
+					next_page = e.page + 1;
+					prev_page = e.page - 1;
+					continue;
+				}
+				if (filter.name) {
+					var regexp = new RegExp('(.{0,})(' + filter.name + ')(.{0,})', 'i');
+					if (e.name.search(regexp) === -1) {
+						continue;
+					}
+				}
+				files[e.path] = e;
+				ischec = "";
+				for (let k = 0; k < mss.length; k++) {
+					const ee = mss[k];
+					if (ee == e.path) {
+						ischec = "checked";
+					}
+				}
+				path = e.path.split(`\\`);
+				path = JSON.stringify(path);
+				var size = "";
+				if (e.prop) {
+					size = format_byte(e.prop.size);
+				}
+				var dir = "";
+				if (keys[i].indexOf("file") == -1) {
+					dir = `class="poiner" onclick='getFiles(${path})'`;
+				} else {
+					dir = `class="poiner" onclick="$('#item${i}').trigger('click');" ondblclick="download('${e.path}')" oncontextmenu="contextmenu(this, event,'${e.path}');return false"`;
+				}
+				if (i === 0 && keys[i].indexOf("adir") === 0) {
+					on = `onchange="checin(99)"'`;
+				} else {
+					on = `onchange="checin(this)"`;
+				}
+				var li = $(`
+							<li style="display: none">
+								<span style="width:4ch; display: inline-block;">#${i + 1}</span>
+								<input class="item_add" id="item${i}" type="checkbox" ${ischec} ${on} value="${e.path}">
+								<span ${dir}>
+								<span class="icon" onmouseover="preView(this,event,'${e.path}')">${e.icon}</span>
+								<span>${e.name}</span></span></a>${size}
+								</span>
+							</li>
+							`).appendTo("#result ul");
+				$(li).slideDown(300 + (i * 30));
+	
+			}
+			if (!response.pager) {
+				$('#this_page').text('')
+				$('#all_page').text('')
+			}
+		}
+	}
+	$('#clear_but').on('click', function () {
+		clear();
+	})
+	function setfolder(x) {
+		if (mss.length === 1 && files[mss[0]].prop.type == 'folder') {
+			$('#setfolder').val(mss[0])
+			$('#location').removeAttr('disabled', 'disabled')
+		} else {
+			$('#location').attr('disabled', 'disabled')
+			$('#setfolder').val(null);
+		}
+	}
+	
+	function preView(self, event, path) {
+		var extension
+		if (!path || !files[path] || !files[path].prop) {
+			return false
+		}
+		if (files[path].prop.type == 'file') {
+			extension = files[path].prop.extension
+		}
+		if (!extension) {
+			return false
+		}
+		path = path.replace('/var/www/www-root/data/ftp', '');
+		switch (extension.toLowerCase()) {
+			case 'gif':
+			case 'png':
+			case 'jpg':
+				$('#prev').html(`<img src="${path}" class="Pcontent">`)
+	
+				break;
+			case 'mp4':
+			case 'avi':
+				$('#prev').html(`<video autoplay muted loop controls>
+				 <source src="${path}">
+				</video>`)
+	
+				break;
+			case 'pdf':
+				$('#prev').html(`<embed style="width: 100%;height:50vh;" src="${path}" type="application/pdf" ></embed >`)
+	
+				break;
+			default:
+				preViewDown()
+				return false
+				break;
+		}
+		$('#prev').fadeIn(0)
+		var height = $('#prev:first-child').height()
+		var width = $('#prev:first-child').width()
+		if (height && width && height < (window.outerHeight / 5) && width < (window.outerWidth / 5)) {
+			$('#prev').height(height)
+			$('#prev').width(width)
+			$('#prev:first-child').css({ 'height': '100%', 'width': '100%' })
+		} else {
+			if (height > width) {
+				$('#prev:first-child').css({ 'height': '10vh' })
+			} else {
+				$('#prev:first-child').css({ 'width': '10vw' })
+			}
+		}
+	
+	}
+	function preViewDown() {
+		$('#prev').fadeOut(50)
+		$('#prev').html('');
+	}
+	
+	var limit = 24 * 3600 * 1000; // 24 часа
+	var localStorageInitTime = localStorage.getItem('localStorageInitTime');
+	if (localStorageInitTime === null) {
+		localStorage.setItem('localStorageInitTime', +new Date());
+	} else if (+new Date() - localStorageInitTime > limit) {
+		localStorage.clear();
+		localStorage.setItem('localStorageInitTime', +new Date());
+	}
+	$('#prev, #prev *').on('contextmenu', function () {
+		preViewDown()
+		return false
+	})
+	
+	function refresh() {
+		var page = next_page - 1
+		if(page < 0){
+			page = 0
+		}
+		delete cache[this_catalog[0] + 'pg' + page]
+	
+		getFiles(8);
+	}
+	function contextmenu(self, event, path){
+		var extension
+		if (!path || !files[path] || !files[path].prop) {
+			return false
+		}
+		if (files[path].prop.type == 'file') {
+			extension = files[path].prop.extension
+		}
+		if (!extension) {
+			return false
+		}
+		path = encodeURI(path.replace('/var/www/www-root/data/ftp', 'http://ftp-technolight.ru'));
+		if(navigator.clipboard){
+			navigator.clipboard.writeText(path);
+		}
+		console.log(path);
+	}
+	</script>
